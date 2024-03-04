@@ -68,9 +68,9 @@ done
 run_task = [
     { name = [
 		"release-x86_64-linux-gnu", "release-aarch64-linux-gnu",
-		"release-x86-linux-gnu", "armv7-unknown-linux-gnueabihf",
-		"x86_64-linux-android", "aarch64-linux-android",
-		"arm-unknown-linux-musleabi", "aarch64-unknown-linux-musl",
+		"release-x86-linux-gnu", "release-armv7-linux-gnueabihf",
+		"release-x86_64-android", "release-aarch64-android",
+		"release-arm-linux-musleabi", "release-aarch64-linux-musl",
 		"post-releases"
 	] },
 ]
