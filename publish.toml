@@ -1,0 +1,11 @@
+extend = [
+	{ path = "enforce.toml" }
+]
+[tasks.publish]
+dependencies = ["enforcestd"]
+command = "cargo"
+args = ["publish"]
+
+[tasks.publishdry]
+extend = "publish"
+args = ["publish", "--dry-run"]

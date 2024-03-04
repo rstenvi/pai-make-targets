@@ -1,0 +1,13 @@
+[tasks.enforcefmt]
+command = "cargo"
+install_crate = "clippy"
+args = ["fmt", "--quiet", "--check" ]
+
+[tasks.enforceclippy]
+command = "cargo"
+install_crate = "clippy"
+args = ["clippy", "--quiet", "--color", "never", "--no-deps", "--all-targets", "--all-features", "--", "-Dwarnings" ]
+
+# Should be called before a new release is created
+[tasks.enforcestd]
+dependencies = ["enforcefmt", "enforceclippy"]

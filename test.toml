@@ -1,0 +1,4 @@
+[tasks.test]
+command = "cargo"
+args = ["test", "--all-features"]
+
