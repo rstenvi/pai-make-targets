@@ -36,7 +36,7 @@ ls output/ | while read line; do
 		if test -f ${OUT}/${OUTNAME}-${line}-${CARGO_MAKE_PROJECT_VERSION}.zip; then
 			rm -f  ${OUT}/${OUTNAME}-${line}-${CARGO_MAKE_PROJECT_VERSION}.zip;
 		fi
-		zip -j ${OUT}/${OUTNAME}-${line}-${CARGO_MAKE_PROJECT_VERSION}.zip output/${line}/release/pai-strace
+		zip -j ${OUT}/${OUTNAME}-${line}-${CARGO_MAKE_PROJECT_VERSION}.zip output/${line}/release/${OUTNAME}
 	fi;
 done
 """
