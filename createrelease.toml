@@ -10,21 +10,44 @@ args = ["build", "--frozen", "--target-dir=output", "--release", "--target=${TAR
 #args = ["build", "--frozen", "--target-dir=output", "--release", "@@split(TARGET,|)"]
 
 
-[tasks.release1]
+# Linux GNU targets
+[tasks.release-x86_64-linux-gnu]
 env = { TARGET = ["x86_64-unknown-linux-gnu"] }
 run_task = "createrelease"
 
-[tasks.release2]
+[tasks.release-aarch64-linux-gnu]
 env = { TARGET = "aarch64-unknown-linux-gnu" }
 run_task = "createrelease"
 
-[tasks.release3]
+[tasks.release-x86-linux-gnu]
+env = { TARGET = ["i686-unknown-linux-gnu"] }
+run_task = "createrelease"
+
+[tasks.release-armv7-linux-gnueabihf]
+env = { TARGET = "armv7-unknown-linux-gnueabihf" }
+run_task = "createrelease"
+
+
+# Android targets
+[tasks.release-x86_64-android]
+env = { TARGET = "x86_64-linux-android" }
+run_task = "createrelease"
+
+[tasks.release-aarch64-android]
 env = { TARGET = "aarch64-linux-android" }
 run_task = "createrelease"
 
-[tasks.release4]
-env = { TARGET = "x86_64-linux-android" }
+
+# musl targets
+# These are statically built, so will work on more platforms
+[tasks.release-arm-linux-musleabi]
+env = { TARGET = "arm-unknown-linux-musleabi" }
 run_task = "createrelease"
+
+[tasks.release-aarch64-linux-musl]
+env = { TARGET = "aarch64-unknown-linux-musl" }
+run_task = "createrelease"
+
 
 [tasks.post-releases]
 script = """
@@ -43,7 +66,13 @@ done
 
 [tasks.releases]
 run_task = [
-    { name = ["release1", "release2", "release3", "release4", "post-releases"] },
+    { name = [
+		"release-x86_64-linux-gnu", "release-aarch64-linux-gnu",
+		"release-x86-linux-gnu", "armv7-unknown-linux-gnueabihf",
+		"x86_64-linux-android", "aarch64-linux-android",
+		"arm-unknown-linux-musleabi", "aarch64-unknown-linux-musl",
+		"post-releases"
+	] },
 ]
 
 [tasks.createzips]

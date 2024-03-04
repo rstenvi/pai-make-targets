@@ -2,3 +2,20 @@
 command = "cargo"
 args = ["test", "--all-features"]
 
+
+[tasks.crosstest-dry]
+command = "cross"
+args = ["test", "--target-dir=output", "--all-features", "--no-run", "--target=${@}"]
+
+[tasks.crosstest]
+condition = { env_set = ["TARGET"], fail_message = "TARGET not specified" }
+command = "rust-script"
+install_crate = "rust-script"
+args = [
+	"${CARGO_MAKE_WORKING_DIRECTORY}/scripts/test-runner.rs",
+	"--config",
+	"${CARGO_MAKE_WORKING_DIRECTORY}/runner_config.toml",
+	"--target-dir=output",
+	"--all-features",
+	"--target=${TARGET}",
+]
