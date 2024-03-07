@@ -1,14 +1,16 @@
 [tasks.createrelease]
-condition = { env_set = ["TARGET", "OUTNAME"], fail_message = "TARGET/OUTNAME not specified" } 
+condition = { env_set = ["TARGET", "OUTPUT"], fail_message = "createrelease: necessary env not specified" }
 command = "cross"
-args = ["build", "--frozen", "--target-dir=output", "--release", "--target=${TARGET}"]
+args = ["build", "--frozen", "--target-dir=${OUTPUT}/cross", "--release", "--target=${TARGET}"]
 
-# We could potentially use @@ßplit here to run make on all targets, but the
-# build will then sometimes fail and I'm not sure why. More reliable to always
-# run them as separate commands.
+[tasks.createrelease-host]
+extend = "createrelease"
+command = "cargo"
+args = ["build", "--frozen", "--target-dir=${OUTPUT}/host", "--release", "--target=${TARGET}"]
 
-#args = ["build", "--frozen", "--target-dir=output", "--release", "@@split(TARGET,|)"]
-
+[tasks.createrelease-host-zbuild]
+extend = "createrelease-host"
+args = ["build", "-Zbuild-std=std", "--frozen", "--target-dir=${OUTPUT}/host", "--release", "--target=${TARGET}"]
 
 # Linux GNU targets
 [tasks.release-x86_64-linux-gnu]
@@ -26,6 +28,14 @@ run_task = "createrelease"
 [tasks.release-armv7-linux-gnueabihf]
 env = { TARGET = "armv7-unknown-linux-gnueabihf" }
 run_task = "createrelease"
+
+[tasks.release-riscv64-linux-gnu]
+env = { TARGET = "riscv64gc-unknown-linux-gnu" }
+run_task = "createrelease-host"
+
+[tasks.release-mips-linux-gnu]
+env = { TARGET = "mips-unknown-linux-gnu" }
+run_task = "createrelease-host-zbuild"
 
 
 # Android targets
@@ -50,30 +60,60 @@ run_task = "createrelease"
 
 
 [tasks.post-releases]
+condition = { env_set = ["OUTNAME", "ZIPOUT"], fail_message = "post-releases: necessary env not specified" }
 script = """
-OUT="release/${CARGO_MAKE_PROJECT_VERSION}"
+#!/usr/bin/env bash
+
+BASE="${ZIPOUT}/${OUTNAME}"
+OUT="${BASE}/zips/${CARGO_MAKE_PROJECT_VERSION}"
 mkdir -p ${OUT};
-ls output/ | while read line; do
-	if test -d output/$line && test -f "output/${line}/release/${OUTNAME}"; then
-		echo $line;
-		if test -f ${OUT}/${OUTNAME}-${line}-${CARGO_MAKE_PROJECT_VERSION}.zip; then
-			rm -f  ${OUT}/${OUTNAME}-${line}-${CARGO_MAKE_PROJECT_VERSION}.zip;
-		fi
-		zip -j ${OUT}/${OUTNAME}-${line}-${CARGO_MAKE_PROJECT_VERSION}.zip output/${line}/release/${OUTNAME}
-	fi;
+
+createzips() {
+	DIR=$1
+	# Create the actual zip files
+	if test -d ${DIR}; then
+		ls ${DIR} | while read line; do
+			if test -d ${DIR}/$line && test -f "${DIR}/${line}/release/${OUTNAME}"; then
+				zip -j ${OUT}/${OUTNAME}-${line}-${CARGO_MAKE_PROJECT_VERSION}.zip ${DIR}/${line}/release/${OUTNAME}
+			fi
+		done
+	fi
+}
+
+# Delete old files that may be there, we don't want to copy stale files as a
+# release
+ls ${OUT} | while read line; do
+	if test -f ${OUT}/$line; then
+		rm ${OUT}/$line
+	fi
 done
+
+createzips "${BASE}/host"
+createzips "${BASE}/cross"
 """
 
 [tasks.releases]
 run_task = [
     { name = [
-		"release-x86_64-linux-gnu", "release-aarch64-linux-gnu",
-		"release-x86-linux-gnu", "release-armv7-linux-gnueabihf",
-		"release-x86_64-android", "release-aarch64-android",
-		"release-arm-linux-musleabi", "release-aarch64-linux-musl",
-		"post-releases"
+		"release-x86_64-linux-gnu",
+		"release-aarch64-linux-gnu",
+		"release-x86-linux-gnu",
+		"release-armv7-linux-gnueabihf",
+		"release-x86_64-android",
+		"release-aarch64-android",
+		"release-arm-linux-musleabi",
+		"release-aarch64-linux-musl",
+		"release-riscv64-linux-gnu",
+		"release-mips-linux-gnu",
 	] },
 ]
 
 [tasks.createzips]
-run_task = "releases"
+condition = { env_set = ["OUTNAME", "ZIPOUT"], fail_message = "createzips: necessary env not specified" }
+env = { OUTPUT = "${ZIPOUT}/${OUTNAME}" }
+run_task = [
+	{ name = [
+		"releases",
+		"post-releases",
+	] }
+]
