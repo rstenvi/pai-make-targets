@@ -5,7 +5,7 @@ args = ["test", "--all-features"]
 
 [tasks.crosstest-dry]
 condition = { env_set = ["TARGET", "OUTPUT"], fail_message = "crosstest-dry: necessary env not specified" }
-env = { ARG = { "source" = "${TARGET}", mapping = {"mips-unknown-linux-gnu" = "-Zbuild-std=std" }}, CMD = { source = "${TARGET}", default_value = "cross", mapping = {"x86-64-unknown-linux-gnu" = "cargo", "riscv64gc-unknown-linux-gnu" = "cargo", "mips-unknown-linux-gnu" = "cargo" } } }
+env = { ARG = { "source" = "${TARGET}", default_value = "", mapping = {"mips-unknown-linux-gnu" = "-Zbuild-std=std" }}, CMD = { source = "${TARGET}", default_value = "cross", mapping = {"x86-64-unknown-linux-gnu" = "cargo", "riscv64gc-unknown-linux-gnu" = "cargo", "mips-unknown-linux-gnu" = "cargo" } } }
 command = "${CMD}"
 args = [ "test", "--target-dir=${OUTPUT}/${CMD}", "--all-features", "--no-run", "${ARG}", "--target=${TARGET}", "${@}"]
 
