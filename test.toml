@@ -4,18 +4,22 @@ args = ["test", "--all-features"]
 
 
 [tasks.crosstest-dry]
-command = "cross"
-args = ["test", "--target-dir=output", "--all-features", "--no-run", "--target=${@}"]
+condition = { env_set = ["TARGET", "OUTPUT"], fail_message = "crosstest-dry: necessary env not specified" }
+env = { ARG = { "source" = "${TARGET}", mapping = {"mips-unknown-linux-gnu" = "-Zbuild-std=std" }}, CMD = { source = "${TARGET}", default_value = "cross", mapping = {"x86-64-unknown-linux-gnu" = "cargo", "riscv64gc-unknown-linux-gnu" = "cargo", "mips-unknown-linux-gnu" = "cargo" } } }
+command = "${CMD}"
+args = [ "test", "--target-dir=${OUTPUT}/${CMD}", "--all-features", "--no-run", "${ARG}", "--target=${TARGET}", "${@}"]
+
 
 [tasks.crosstest]
-condition = { env_set = ["TARGET"], fail_message = "TARGET not specified" }
+condition = { env_set = ["TARGET", "OUTPUT"], fail_message = "crosstest: necessary env not specified" }
+dependencies = ["crosstest-dry"]
 command = "rust-script"
 install_crate = "rust-script"
 args = [
 	"${CARGO_MAKE_WORKING_DIRECTORY}/scripts/test-runner.rs",
+	"-v",
+	"--target-dir", "${OUTPUT}",
 	"--config",
 	"${CARGO_MAKE_WORKING_DIRECTORY}/runner_config.toml",
-	"--target-dir=output",
-	"--all-features",
 	"--target=${TARGET}",
 ]
